@@ -1,0 +1,187 @@
+[
+  {
+    "id": "rl01",
+    "data": {
+      "ref": 1,
+      "title": "Book the boiler service",
+      "note": "Ask for a morning slot.",
+      "owners": [
+        "Alex"
+      ],
+      "workstream": "home",
+      "due": "2026-11-02",
+      "start": "",
+      "parent": "",
+      "deps": [],
+      "status": "open",
+      "doneAt": null,
+      "doneBy": null,
+      "source": "",
+      "order": 1,
+      "createdAt": "2026-10-01T09:00:00.000Z",
+      "createdBy": null
+    }
+  },
+  {
+    "id": "rl02",
+    "data": {
+      "ref": 2,
+      "title": "Draft the committee report",
+      "note": "Figures from the treasurer first.",
+      "owners": [
+        "Alex"
+      ],
+      "workstream": "work",
+      "due": "2026-10-30",
+      "start": "2026-10-20",
+      "parent": "",
+      "deps": [
+        {
+          "id": "rl03",
+          "type": "FS"
+        }
+      ],
+      "status": "open",
+      "doneAt": null,
+      "doneBy": null,
+      "source": "",
+      "order": 2,
+      "createdAt": "2026-10-01T09:00:00.000Z",
+      "createdBy": null
+    }
+  },
+  {
+    "id": "rl03",
+    "data": {
+      "ref": 3,
+      "title": "Get the figures from the treasurer",
+      "note": "",
+      "owners": [],
+      "workstream": "work",
+      "due": "2026-10-19",
+      "start": "",
+      "parent": "",
+      "deps": [],
+      "status": "open",
+      "doneAt": null,
+      "doneBy": null,
+      "source": "",
+      "order": 3,
+      "createdAt": "2026-10-01T09:00:00.000Z",
+      "createdBy": null
+    }
+  },
+  {
+    "id": "rl04",
+    "data": {
+      "ref": 4,
+      "title": "Renew the car insurance",
+      "note": "",
+      "owners": [
+        "Alex"
+      ],
+      "workstream": "home",
+      "due": "2026-10-14",
+      "start": "",
+      "parent": "",
+      "deps": [],
+      "status": "open",
+      "doneAt": null,
+      "doneBy": null,
+      "source": "",
+      "order": 4,
+      "createdAt": "2026-10-01T09:00:00.000Z",
+      "createdBy": null
+    }
+  },
+  {
+    "id": "rl05",
+    "data": {
+      "ref": 5,
+      "title": "Learn the bass part for the winter concert",
+      "note": "Rehearsals on Tuesdays.",
+      "owners": [
+        "Alex"
+      ],
+      "workstream": "learning",
+      "due": "2026-12-05",
+      "start": "2026-10-13",
+      "parent": "",
+      "deps": [],
+      "status": "open",
+      "doneAt": null,
+      "doneBy": null,
+      "source": "",
+      "order": 5,
+      "createdAt": "2026-10-01T09:00:00.000Z",
+      "createdBy": null
+    }
+  },
+  {
+    "id": "rl06",
+    "data": {
+      "ref": 6,
+      "title": "Walk the coast path from end to end",
+      "note": "",
+      "owners": [],
+      "workstream": "someday",
+      "due": "",
+      "start": "",
+      "parent": "",
+      "deps": [],
+      "status": "open",
+      "doneAt": null,
+      "doneBy": null,
+      "source": "",
+      "order": 6,
+      "createdAt": "2026-10-01T09:00:00.000Z",
+      "createdBy": null
+    }
+  },
+  {
+    "id": "rl07",
+    "data": {
+      "ref": 7,
+      "title": "Check the figures add up",
+      "note": "",
+      "owners": [
+        "Sam"
+      ],
+      "workstream": "work",
+      "due": "2026-10-22",
+      "start": "",
+      "parent": "rl02",
+      "deps": [],
+      "status": "open",
+      "doneAt": null,
+      "doneBy": null,
+      "source": "",
+      "order": 7,
+      "createdAt": "2026-10-01T09:00:00.000Z",
+      "createdBy": null
+    }
+  },
+  {
+    "id": "rl08",
+    "data": {
+      "ref": 8,
+      "title": "Clear the gutters",
+      "note": "",
+      "owners": [
+        "Alex"
+      ],
+      "workstream": "home",
+      "due": "2026-10-10",
+      "start": "",
+      "parent": "",
+      "deps": [],
+      "status": "done",
+      "doneAt": "2026-10-11T10:00:00.000Z",
+      "doneBy": null,
+      "source": "",
+      "order": 8,
+      "createdAt": "2026-10-01T09:00:00.000Z",
+      "createdBy": null
+    }
+  }
+]

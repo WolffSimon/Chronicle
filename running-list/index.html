@@ -1,0 +1,959 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Running List</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+/* Workstream colours are generated from CONFIG at load time (see applyTheme).
+   Layout: one column. A header with the counts, the owner filter, the view switch and the add form. The list view groups open items by workstream, with subtasks folded under their parent and done items at the foot. The timeline view draws dated items as bars across this week or six weeks, with dependency arrows between them. */
+:root{
+  --bg:#EDF0F3; --surface:#FAFBFC; --ink:#131D27; --muted:#56636F; --line:#D2D9E0;
+  --accent:#2D6A62; --accent-ink:#FFFFFF; --warn:#9C3F0A; --warn-bg:#F6E4D7;
+  --soon:#6B5310; --soon-bg:#F3ECD2; --wknd:#EEF1F4; --today:#E3E9F8;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#11161B; --surface:#192028; --ink:#E4E9EE; --muted:#9AA6B2; --line:#2B343E;
+    --accent:#7CC7B8; --accent-ink:#0D2420; --warn:#F2A06A; --warn-bg:#3A2418;
+    --soon:#E2C875; --soon-bg:#33301C; --wknd:#151B21; --today:#1F2943;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#11161B; --surface:#192028; --ink:#E4E9EE; --muted:#9AA6B2; --line:#2B343E;
+  --accent:#7CC7B8; --accent-ink:#0D2420; --warn:#F2A06A; --warn-bg:#3A2418;
+  --soon:#E2C875; --soon-bg:#33301C; --wknd:#151B21; --today:#1F2943;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:980px;margin:0 auto;padding-inline:16px;padding-block:28px 72px;display:flex;flex-direction:column;gap:30px}
+h1,h2{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-0.005em}
+h1{font-size:clamp(26px,5.6vw,38px);font-weight:700;line-height:1.1}
+h2{font-size:19px;font-weight:700}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.sub{color:var(--muted);margin:6px 0 0}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+header{display:flex;flex-direction:column;gap:16px;max-width:820px}
+.counts{display:flex;flex-wrap:wrap;gap:8px}
+.count{display:flex;align-items:baseline;gap:6px;padding:5px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);font-size:14px}
+.count b{font-family:var(--mono);font-size:15px;font-weight:500}
+.count.hot{border-color:var(--warn);color:var(--warn);background:var(--warn-bg)}
+.filterbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.filterbar .lbl{font-size:13px;color:var(--muted);margin-right:4px}
+.filterbar button{font:inherit;font-size:14px;padding:5px 11px;border-radius:6px;border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
+.filterbar button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.viewbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:var(--surface)}
+.seg button{font:inherit;font-size:14px;font-weight:600;padding:6px 14px;border:0;background:transparent;color:var(--ink);cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.add{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;padding:14px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.add .line{display:flex;flex-wrap:wrap;gap:8px}
+.add input[type=text]{flex:1 1 220px;min-width:0}
+.add select{flex:0 1 auto;min-width:0;max-width:100%}
+#newparent{flex:1 1 200px;width:200px}
+.field{font:inherit;font-size:15px;padding:8px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);min-width:0;max-width:100%}
+textarea.field{width:100%;resize:vertical;min-height:64px}
+.btn{font:inherit;font-weight:600;font-size:14px;padding:8px 14px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.btn.quiet{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.danger{background:transparent;color:var(--warn);border-color:var(--warn)}
+.btn:disabled{opacity:.5;cursor:default}
+.linkbtn{font:inherit;font-size:13px;background:none;border:0;padding:2px 0;color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px;text-align:left}
+.status{font-size:14px;color:var(--muted);min-height:1.3em}
+.status.err{color:var(--warn)}
+.hint{font-size:13px;color:var(--muted)}
+#listview{display:flex;flex-direction:column;gap:30px;max-width:820px}
+section{display:flex;flex-direction:column;gap:6px}
+.wshead{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+.wshead h2{display:flex;align-items:center;gap:10px}
+.wshead .mono{font-size:13px;color:var(--muted)}
+.swatch{width:12px;height:12px;border-radius:2px;flex:none;display:inline-block}
+.row{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
+.row input[type=checkbox]{width:20px;height:20px;margin:3px 0 0;accent-color:var(--accent);flex:none;cursor:pointer}
+.row input[type=checkbox]:disabled{cursor:default}
+.row .body{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.row .head{display:flex;gap:10px;align-items:baseline}
+.ref{font-family:var(--mono);font-size:12.5px;color:var(--muted);flex:none}
+.row .title{font-weight:600;overflow-wrap:anywhere}
+.row .note{color:var(--muted);font-size:14.5px;overflow-wrap:anywhere;white-space:pre-wrap}
+.meta{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;font-size:13px;color:var(--muted)}
+.owners{display:flex;flex-wrap:wrap;gap:4px}
+.owner{font-size:12.5px;font-weight:600;padding:1px 8px;border-radius:4px;border:1px solid var(--line);color:var(--ink);background:var(--surface)}
+.owner.none{font-weight:400;color:var(--muted);border-style:dashed}
+.pill{font-size:12px;font-weight:600;padding:1px 8px;border-radius:4px;font-family:var(--mono)}
+.pill.over{background:var(--warn-bg);color:var(--warn)}
+.pill.soon{background:var(--soon-bg);color:var(--soon)}
+.pill.later{border:1px solid var(--line);color:var(--muted)}
+.row.done .title{text-decoration:line-through;color:var(--muted);font-weight:400}
+.row.flash{background:var(--today)}
+.subs{display:flex;flex-direction:column;margin-top:4px;border-left:2px solid var(--line);padding-left:12px}
+.subs .row{padding:8px 0}
+.subs .row:last-child{border-bottom:0}
+.edit{display:flex;flex-direction:column;gap:10px;padding:12px;margin-top:4px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.edit label,.edit .grp{font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:4px;min-width:0}
+.edit .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.edit .acts{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.edit .acts .spacer{flex:1}
+.deplist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.deplist li{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;font-size:14px;color:var(--ink)}
+.depadd{display:flex;flex-wrap:wrap;gap:8px}
+.depadd select{flex:1 1 170px}
+.confirm{font-size:14px;color:var(--warn);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.empty{color:var(--muted);padding:10px 0}
+details summary{cursor:pointer;font-family:var(--display);font-weight:700;font-size:19px;list-style:none;display:flex;justify-content:space-between;padding-bottom:6px;border-bottom:2px solid var(--ink)}
+details summary::-webkit-details-marker{display:none}
+details summary .mono{font-size:13px;color:var(--muted);font-family:var(--mono);font-weight:500}
+.foot{font-size:13px;color:var(--muted);max-width:820px}
+/* Timeline */
+#tlview{display:flex;flex-direction:column;gap:12px}
+.tlctl{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+.nav{display:inline-flex;gap:4px}
+.nav button{font:inherit;font-size:14px;padding:5px 10px;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.tlrange{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--muted)}
+.lg{display:inline-flex;align-items:center;gap:6px}
+.lg .b{width:22px;height:10px;border-radius:3px;background:var(--muted)}
+.lg .d{width:10px;height:10px;transform:rotate(45deg);background:var(--muted)}
+.tlscroll{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.tl{position:relative}
+.tlhead{display:flex;border-bottom:1px solid var(--line)}
+.tlhead .hcells{display:flex;flex-direction:column}
+.tlhead .wkrow,.tlhead .dayrow{display:flex}
+.tlhead .wk{font-size:12px;color:var(--muted);padding:4px 6px;border-left:1px solid var(--line);white-space:nowrap;overflow:hidden}
+.tlhead .dh{font-size:12.5px;color:var(--muted);padding:6px 4px;border-left:1px solid var(--line);text-align:center;white-space:nowrap;overflow:hidden;font-variant-numeric:tabular-nums}
+.tlhead .dh.we{background:var(--wknd)}
+.tlhead .dh.td{color:var(--accent);font-weight:600;background:var(--today)}
+.lblcol{position:sticky;left:0;z-index:3;flex:none;background:var(--surface);border-right:1px solid var(--line)}
+.tlhead .lblcol{font-size:12.5px;color:var(--muted);padding:6px 10px;display:flex;align-items:flex-end}
+.tlbody{position:relative}
+.cols{position:absolute;top:0;bottom:0;pointer-events:none;z-index:0}
+.col{position:absolute;top:0;bottom:0;border-left:1px solid var(--line)}
+.col.we{background:var(--wknd)}
+.col.td{background:var(--today)}
+svg.arrows{position:absolute;top:0;pointer-events:none;overflow:hidden;z-index:1}
+.dep{fill:none;stroke:var(--muted);stroke-width:1.5}
+.dep.bad{stroke:var(--warn);stroke-width:2}
+.ahn{fill:var(--muted)}
+.ahw{fill:var(--warn)}
+.tlrow{display:flex;height:36px;position:relative;z-index:2}
+.tlrow .lblcol{display:flex;align-items:center;gap:8px;min-width:0;font:inherit;font-size:14px;color:var(--ink);text-align:left;border:0;border-right:1px solid var(--line);padding:0 10px;cursor:pointer}
+.tlrow .lblcol .lt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tlrow .lblcol .ref.blk{color:var(--warn);font-weight:600}
+.tlrow.grp .lblcol{cursor:default;font-family:var(--display);font-weight:700;font-size:14px}
+.tlrow.grp{border-top:1px solid var(--line)}
+.tlrow.isdone .lt{text-decoration:line-through;color:var(--muted)}
+.trk{position:relative;flex:none}
+.bar{position:absolute;top:9px;height:18px;border-radius:4px;background:var(--wsc)}
+.bar.done{opacity:.35}
+.bar.over{box-shadow:0 0 0 2px var(--warn)}
+.bar.clipL{border-top-left-radius:0;border-bottom-left-radius:0}
+.bar.clipR{border-top-right-radius:0;border-bottom-right-radius:0}
+.bar.sum{top:13px;height:10px;background:transparent;border:2px solid var(--wsc);border-top:0;border-radius:0 0 3px 3px}
+.ms{position:absolute;top:11px;width:14px;height:14px;transform:rotate(45deg);background:var(--wsc)}
+.ms.done{opacity:.35}
+.ms.over{box-shadow:0 0 0 2px var(--warn)}
+.stub{position:absolute;top:8px;font-size:12px;font-weight:600;padding:1px 8px;border-radius:4px;font-family:var(--mono);white-space:nowrap}
+.stub.l{left:4px;background:var(--warn-bg);color:var(--warn)}
+.stub.l.quiet{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.stub.r{right:4px;border:1px solid var(--line);color:var(--muted);background:var(--surface)}
+.sumbox{display:flex;flex-direction:column;gap:8px;padding:14px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.sumhead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.sumacts{display:flex;gap:8px}
+#sumtext{width:100%;min-height:280px;font-family:var(--mono);font-size:13px;line-height:1.5;resize:vertical}
+.undated summary{font-size:16px}
+.ulist{display:flex;flex-direction:column;gap:6px;padding-top:8px}
+@media (prefers-reduced-motion: no-preference){.row{transition:background-color .4s}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <p class="eyebrow" id="eyebrow"></p>
+      <h1 id="pagetitle">Running List</h1>
+      <p class="sub" id="today">Today</p>
+    </div>
+    <div class="counts" id="counts"></div>
+    <div class="viewbar">
+      <div class="seg" role="group" aria-label="View">
+        <button type="button" id="v-list" data-view="list" aria-pressed="true">List</button>
+        <button type="button" id="v-tl" data-view="timeline" aria-pressed="false">Timeline</button>
+      </div>
+      <div class="filterbar" id="filters" role="group" aria-label="Show items for"></div>
+      <button type="button" class="btn quiet" id="sumbtn" data-sum="1" aria-expanded="false" aria-controls="sumbox">Summary</button>
+    </div>
+    <section class="sumbox" id="sumbox" hidden aria-labelledby="h-sum">
+      <div class="sumhead"><h2 id="h-sum">Summary</h2>
+        <div class="sumacts"><button class="btn" type="button" data-sumcopy="1">Copy</button><button class="btn quiet" type="button" data-sum="1">Close</button></div>
+      </div>
+      <p class="hint">The summary covers the whole list, whatever the filter shows. Copy it wherever you need it.</p>
+      <textarea class="field" id="sumtext" readonly aria-label="Summary text"></textarea>
+    </section>
+    <form class="add" id="addform" autocomplete="off" hidden>
+      <div class="line">
+        <input class="field" type="text" id="newtitle" placeholder="Add an item" aria-label="New item">
+        <select class="field" id="newws" aria-label="Workstream"></select>
+      </div>
+      <div class="line">
+        <input class="field" type="text" id="newowner" list="teamlist" placeholder="Owner, or several separated by commas" aria-label="Owner">
+        <select class="field" id="newparent" aria-label="Subtask of"></select>
+        <input class="field" type="date" id="newdue" aria-label="Due date">
+        <button class="btn" type="submit" id="addbtn">Add</button>
+      </div>
+    </form>
+    <datalist id="teamlist"></datalist>
+    <div class="status" id="status" role="status">Loading the list…</div>
+  </header>
+
+  <div id="listview">
+    <div id="groups" style="display:flex;flex-direction:column;gap:30px"></div>
+    <section>
+      <details id="donebox">
+        <summary><span>Done</span><span class="mono" id="donecount">0</span></summary>
+        <div id="donelist"></div>
+      </details>
+    </section>
+  </div>
+
+  <div id="tlview" hidden>
+    <div class="tlctl">
+      <div class="seg" role="group" aria-label="Range">
+        <button type="button" data-scale="week" aria-pressed="true">This week</button>
+        <button type="button" data-scale="six" aria-pressed="false">Six weeks</button>
+      </div>
+      <div class="nav">
+        <button type="button" data-nav="-1" aria-label="Earlier">‹ Earlier</button>
+        <button type="button" data-nav="0">Today</button>
+        <button type="button" data-nav="1" aria-label="Later">Later ›</button>
+      </div>
+      <span class="tlrange" id="tlrange"></span>
+    </div>
+    <div class="legend">
+      <span class="lg"><span class="b"></span>Start to due date</span>
+      <span class="lg"><span class="d"></span>Due date only</span>
+      <span class="lg"><svg width="26" height="10" aria-hidden="true"><path d="M1 5 H20" class="dep"/><path d="M18 1 L25 5 L18 9 z" class="ahn"/></svg>Depends on</span>
+      <span class="lg"><svg width="26" height="10" aria-hidden="true"><path d="M1 5 H20" class="dep bad"/><path d="M18 1 L25 5 L18 9 z" class="ahw"/></svg>Dates conflict</span>
+    </div>
+    <div class="tlscroll" id="tlscroll"><div id="tl"></div></div>
+    <div id="undated"></div>
+  </div>
+
+  <p class="foot">Tick an item when it is finished. Use Edit to change the owner, the dates, the subtasks and the dependencies. Select an item on the timeline to open it in the list. Summary gives a plain-text summary of the whole list.</p>
+</div>
+
+<script>
+/* ---------------------------------------------------------------
+   CONFIG: the only part most people need to change.
+   title       the page heading and the first line of the summary
+   eyebrow     the small line above the heading
+   prefix      the reference prefix: "RL" shows items as RL-01, RL-02
+   workstreams the groups the list is sorted into, in display order;
+               each has a key (stored on items), a label and two colours
+   team        names offered in the owner box, in filter order
+   listUrl     this page's own link, quoted at the foot of the summary
+   storageKey  the browser key for the remembered filter
+--------------------------------------------------------------- */
+const CONFIG={
+  title:"Running List",
+  eyebrow:"One thread's list",
+  prefix:"RL",
+  workstreams:[
+    {key:"work",     label:"Work",               light:"#2A6896", dark:"#7FB3DB"},
+    {key:"making",   label:"Making",             light:"#9E5A24", dark:"#E3A06A"},
+    {key:"learning", label:"Learning",           light:"#7A4A9C", dark:"#C39BE0"},
+    {key:"home",     label:"Home and family",    light:"#3B7451", dark:"#86C49E"},
+    {key:"travel",   label:"Travel",             light:"#8A4A62", dark:"#D79BB1"},
+    {key:"someday",  label:"Someday",            light:"#5B6670", dark:"#AEB8C2"}
+  ],
+  team:[],
+  listUrl:"",
+  storageKey:"running-list-filter"
+};
+const WS=Object.fromEntries(CONFIG.workstreams.map(w=>[w.key,w.label]));
+const WS_ORDER=CONFIG.workstreams.map(w=>w.key);
+const DEFAULT_WS=WS_ORDER[WS_ORDER.length-1];
+const TEAM=CONFIG.team;
+function applyTheme(){
+  const safe=k=>String(k).replace(/[^a-z0-9_-]/gi,"");
+  const v=(mode)=>CONFIG.workstreams.map(w=>"--ws-"+safe(w.key)+":"+w[mode]+";").join("");
+  const css=":root{"+v("light")+"}"+
+    "@media (prefers-color-scheme: dark){:root:not([data-theme=\"light\"]){"+v("dark")+"}}"+
+    ":root[data-theme=\"dark\"]{"+v("dark")+"}"+
+    CONFIG.workstreams.map(w=>".ws-"+safe(w.key)+"{background:var(--ws-"+safe(w.key)+")}").join("");
+  const el=document.createElement("style"); el.textContent=css; document.head.appendChild(el);
+  document.title=CONFIG.title;
+  $("pagetitle").textContent=CONFIG.title;
+  $("eyebrow").textContent=CONFIG.eyebrow;
+}
+const DEP={FS:"Finish to start",SS:"Start to start",FF:"Finish to finish",SF:"Start to finish"};
+const ROW=36;
+
+let items=[]; let M={}; let db=null; let user=null; let myId=null;
+let canWrite=null; let loaded=false;
+let filter="all"; let editing=null; let draft=null; let confirmDel=null;
+let view=(location.hash==="#timeline")?"timeline":"list";
+let scale="week"; let undatedOpen=false; let sumOpen=false;
+const LIST_URL=CONFIG.listUrl;
+const expanded=new Set();
+try{ const f=localStorage.getItem(CONFIG.storageKey); if(f) filter=f; }catch(e){}
+
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parse=s=>{const p=s.split("-").map(Number);return new Date(p[0],p[1]-1,p[2]);};
+const today=()=>iso(new Date());
+const addDays=(s,n)=>{const d=parse(s);d.setDate(d.getDate()+n);return iso(d);};
+const fmt=s=>parse(s).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"});
+const fmtShort=s=>parse(s).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+const fmtStamp=t=>{try{return new Date(t).toLocaleDateString("en-GB",{day:"numeric",month:"short"});}catch(e){return "";}};
+function mondayOf(s){const d=parse(s);d.setDate(d.getDate()-((d.getDay()+6)%7));return iso(d);}
+let anchor=mondayOf(today());
+function esc(t){const d=document.createElement("div");d.textContent=t==null?"":String(t);return d.innerHTML;}
+function setStatus(msg,err){const s=$("status");s.textContent=msg||"";s.className="status"+(err?" err":"");}
+const refOf=t=>CONFIG.prefix+"-"+pad(Number(t.ref)||0);
+const ownersOf=t=>Array.isArray(t.owners)?t.owners.filter(Boolean):[];
+const parseOwners=s=>String(s||"").split(",").map(x=>x.trim()).filter(Boolean);
+const wsOf=t=>WS[t.workstream]?t.workstream:DEFAULT_WS;
+const byRef=(a,b)=>(Number(a.ref)||0)-(Number(b.ref)||0);
+function writable(){return !!db && canWrite!==false;}
+function depsOf(t){return Array.isArray(t.deps)?t.deps.filter(d=>d&&typeof d.id==="string"&&DEP[d.type]):[];}
+function parentOf(t){const p=t.parent&&M[t.parent];return p&&p.id!==t.id&&!p.parent?p:null;}
+function kidsOf(id){return items.filter(t=>t.parent===id&&t.id!==id&&parentOf(t));}
+function refById(id){return M[id]?refOf(M[id]):"a deleted item";}
+function blockers(t){return depsOf(t).filter(d=>d.type==="FS"&&M[d.id]&&M[d.id].status!=="done");}
+
+function visible(t){
+  if(filter==="all") return true;
+  const o=ownersOf(t);
+  if(filter==="__none") return o.length===0;
+  return o.includes(filter);
+}
+
+function sortOpen(a,b){
+  const ad=a.due||"9999", bd=b.due||"9999";
+  return ad.localeCompare(bd)||(Number(a.order)||0)-(Number(b.order)||0)||byRef(a,b);
+}
+function sortKids(list){
+  const o=list.filter(t=>t.status!=="done").sort(sortOpen);
+  const d=list.filter(t=>t.status==="done").sort((a,b)=>String(a.doneAt||"").localeCompare(String(b.doneAt||"")));
+  return o.concat(d);
+}
+
+/* Dates */
+function spanOf(t){
+  const s=t.start||"", d=t.due||"";
+  if(!s&&!d) return null;
+  if(!s) return {s:d,e:d,ms:true};
+  if(!d) return {s:s,e:s,ms:false};
+  return s<=d?{s:s,e:d,ms:false}:{s:d,e:s,ms:false};
+}
+function effSpan(t){
+  const own=spanOf(t); if(own) return own;
+  const ks=kidsOf(t.id).map(spanOf).filter(Boolean);
+  if(!ks.length) return null;
+  let s=ks[0].s,e=ks[0].e;
+  ks.forEach(k=>{if(k.s<s)s=k.s; if(k.e>e)e=k.e;});
+  return {s,e,ms:false,sum:true};
+}
+function conflict(pred,succ,type){
+  const p=spanOf(pred), q=spanOf(succ); if(!p||!q) return false;
+  if(type==="FS") return q.s<p.e;
+  if(type==="SS") return q.s<p.s;
+  if(type==="FF") return q.e<p.e;
+  if(type==="SF") return q.e<p.s;
+  return false;
+}
+function dependsOn(from,target){
+  const seen=new Set(); const stack=[from];
+  while(stack.length){
+    const x=stack.pop();
+    if(x===target) return true;
+    if(seen.has(x)) continue; seen.add(x);
+    const t=M[x]; if(t) depsOf(t).forEach(d=>stack.push(d.id));
+  }
+  return false;
+}
+
+/* List view */
+function duePill(t){
+  if(!t.due && !t.start) return "";
+  const td=today(); const open=t.status!=="done";
+  let txt;
+  if(t.start && t.due) txt=fmt(t.start)+" to "+fmt(t.due);
+  else if(t.due) txt=fmt(t.due);
+  else txt="From "+fmt(t.start);
+  if(open && t.due && t.due<td) return '<span class="pill over">Overdue · '+esc(txt)+'</span>';
+  if(open && t.due && t.due<=addDays(td,7)) return '<span class="pill soon">'+(t.start?"":"Due ")+esc(txt)+'</span>';
+  return '<span class="pill later">'+esc(txt)+'</span>';
+}
+function ownersHTML(t){
+  const o=ownersOf(t);
+  if(!o.length) return '<span class="owners"><span class="owner none">No owner yet</span></span>';
+  return '<span class="owners">'+o.map(n=>'<span class="owner">'+esc(n)+'</span>').join("")+'</span>';
+}
+function depsHTML(t){
+  const ds=depsOf(t); if(!ds.length) return "";
+  let h="";
+  if(t.status!=="done" && blockers(t).length) h+='<span class="pill over">Blocked</span>';
+  h+='<span>Depends on '+ds.map(d=>esc(refById(d.id))+' ('+esc(DEP[d.type].toLowerCase())+')').join(", ")+'</span>';
+  return h;
+}
+function draftOf(t){
+  return {title:t.title||"",note:t.note||"",owner:ownersOf(t).join(", "),due:t.due||"",start:t.start||"",
+    workstream:wsOf(t),parent:parentOf(t)?t.parent:"",deps:depsOf(t).map(d=>({id:d.id,type:d.type}))};
+}
+function itemOption(x,sel){return '<option value="'+esc(x.id)+'"'+(sel?" selected":"")+'>'+esc(refOf(x)+" "+x.title)+'</option>';}
+
+function editHTML(t){
+  const d=draft||{};
+  const hasKids=kidsOf(t.id).length>0;
+  const wsOpts=WS_ORDER.map(k=>'<option value="'+k+'"'+(d.workstream===k?" selected":"")+'>'+esc(WS[k])+'</option>').join("");
+  const parOpts='<option value="">Not a subtask</option>'+items.filter(x=>x.id!==t.id&&!parentOf(x)).sort(byRef).map(x=>itemOption(x,d.parent===x.id)).join("");
+  const depList=(d.deps||[]).map((dp,i)=>'<li><span>'+esc(refById(dp.id))+' '+esc(M[dp.id]?M[dp.id].title:"")+' · '+esc(DEP[dp.type])+'</span><button class="linkbtn" type="button" data-depdel="'+i+'">Remove</button></li>').join("");
+  const depOpts=items.filter(x=>x.id!==t.id).sort(byRef).map(x=>itemOption(x,false)).join("");
+  const typeOpts=Object.keys(DEP).map(k=>'<option value="'+k+'">'+esc(DEP[k])+'</option>').join("");
+  let acts='<div class="acts"><button class="btn" type="button" data-save="'+esc(t.id)+'">Save</button><button class="btn quiet" type="button" data-cancel="1">Cancel</button><span class="spacer"></span>';
+  if(confirmDel===t.id){
+    const n=kidsOf(t.id).length;
+    acts+='<span class="confirm">Delete this item?'+(n?' Its '+n+(n===1?' subtask stays':' subtasks stay')+' as separate items.':'')+'<button class="btn danger" type="button" data-delyes="'+esc(t.id)+'">Delete</button><button class="btn quiet" type="button" data-delno="1">Keep it</button></span>';
+  }else{
+    acts+='<button class="btn danger" type="button" data-del="'+esc(t.id)+'">Delete</button>';
+  }
+  acts+='</div>';
+  return '<div class="edit">'+
+    '<label>Item<input class="field" type="text" id="ed-title" data-draft="title" value="'+esc(d.title)+'"></label>'+
+    '<label>Note<textarea class="field" id="ed-note" data-draft="note">'+esc(d.note)+'</textarea></label>'+
+    '<div class="two">'+
+      '<label>Owner<input class="field" type="text" id="ed-owner" list="teamlist" data-draft="owner" value="'+esc(d.owner)+'" placeholder="Separate names with commas"></label>'+
+      '<label>Start date<input class="field" type="date" id="ed-start" data-draft="start" value="'+esc(d.start)+'"></label>'+
+      '<label>Due date<input class="field" type="date" id="ed-due" data-draft="due" value="'+esc(d.due)+'"></label>'+
+      '<label>Workstream<select class="field" id="ed-ws" data-draft="workstream">'+wsOpts+'</select></label>'+
+    '</div>'+
+    '<label>Subtask of<select class="field" id="ed-parent" data-draft="parent"'+(hasKids?" disabled":"")+'>'+parOpts+'</select>'+
+      '<span class="hint">'+(hasKids?'This item has subtasks, so it cannot be a subtask itself.':'A subtask takes its parent\'s workstream.')+'</span></label>'+
+    '<div class="grp">Depends on'+
+      (depList?'<ul class="deplist">'+depList+'</ul>':'<span class="hint">No dependencies.</span>')+
+      '<div class="depadd"><select class="field" id="ed-dep-id" aria-label="Item this depends on">'+depOpts+'</select>'+
+      '<select class="field" id="ed-dep-type" aria-label="Type of dependency">'+typeOpts+'</select>'+
+      '<button class="btn quiet" type="button" data-depadd="'+esc(t.id)+'">Add dependency</button></div>'+
+    '</div>'+acts+'</div>';
+}
+
+function rowHTML(t,opts){
+  opts=opts||{};
+  const done=t.status==="done";
+  const cb="cb-"+t.id;
+  const dis=writable()?"":" disabled";
+  let meta=ownersHTML(t)+duePill(t)+depsHTML(t);
+  const par=parentOf(t);
+  if(par && opts.showParent) meta+='<span>Subtask of '+esc(refOf(par))+'</span>';
+  if(t.source) meta+='<span>'+esc(t.source)+'</span>';
+  if(done) meta+='<span>Done '+esc(fmtStamp(t.doneAt))+(t.doneBy?'<span data-uid="'+esc(t.doneBy)+'"></span>':'')+'</span>';
+  if(writable() && editing!==t.id) meta+='<button class="linkbtn" type="button" data-edit="'+esc(t.id)+'">Edit</button>';
+  let subs="";
+  const ks=opts.kids||[];
+  if(ks.length){
+    const n=ks.length, nd=ks.filter(k=>k.status==="done").length, open=expanded.has(t.id);
+    subs='<button class="linkbtn" type="button" data-sub="'+esc(t.id)+'" aria-expanded="'+open+'">'+(open?"Hide ":"Show ")+n+(n===1?" subtask":" subtasks")+', '+nd+' done</button>';
+    if(open) subs+='<div class="subs">'+ks.map(k=>rowHTML(k,{})).join("")+'</div>';
+  }
+  return '<div class="row'+(done?" done":"")+'" id="row-'+esc(t.id)+'">'+
+    '<input type="checkbox" id="'+esc(cb)+'" data-toggle="'+esc(t.id)+'"'+(done?" checked":"")+dis+' aria-label="'+(done?"Reopen: ":"Mark done: ")+esc(t.title)+'">'+
+    '<div class="body"><div class="head"><span class="ref">'+esc(refOf(t))+'</span><label class="title" for="'+esc(cb)+'">'+esc(t.title)+'</label></div>'+
+    (t.note?'<div class="note">'+esc(t.note)+'</div>':'')+
+    '<div class="meta">'+meta+'</div>'+
+    (editing===t.id?editHTML(t):'')+subs+
+    '</div></div>';
+}
+
+function listShape(){
+  const flat=filter!=="all";
+  const top=[]; const kids={};
+  for(const t of items){
+    const p=parentOf(t);
+    if(!flat && p && (p.status!=="done" || t.status==="done")) (kids[p.id]=kids[p.id]||[]).push(t);
+    else top.push(t);
+  }
+  Object.keys(kids).forEach(k=>kids[k]=sortKids(kids[k]));
+  return {top,kids};
+}
+
+function renderList(){
+  const {top,kids}=listShape();
+  const open=top.filter(t=>t.status!=="done"&&visible(t));
+  let html="";
+  for(const k of WS_ORDER){
+    const list=open.filter(t=>wsOf(t)===k).sort(sortOpen);
+    if(!list.length) continue;
+    const n=list.reduce((a,t)=>a+1+(kids[t.id]||[]).filter(c=>c.status!=="done").length,0);
+    html+='<section aria-labelledby="h-'+k+'"><div class="wshead"><h2 id="h-'+k+'"><span class="swatch ws-'+k+'"></span>'+esc(WS[k])+'</h2><span class="mono">'+n+' open</span></div>'+
+      '<div>'+list.map(t=>rowHTML(t,{kids:kids[t.id],showParent:true})).join("")+'</div></section>';
+  }
+  if(!html){
+    if(!loaded) html='<div class="empty">The items will appear here once the list has loaded.</div>';
+    else if(!items.length) html='<div class="empty">No items yet.'+(writable()?" Add the first one above.":"")+'</div>';
+    else html='<div class="empty">Nothing open for this owner.</div>';
+  }
+  $("groups").innerHTML=html;
+  const d=top.filter(t=>t.status==="done"&&visible(t)).sort((a,b)=>String(b.doneAt||"").localeCompare(String(a.doneAt||"")));
+  $("donecount").textContent=String(d.length);
+  $("donelist").innerHTML=d.length?d.map(t=>rowHTML(t,{kids:kids[t.id],showParent:true})).join(""):'<div class="empty">Nothing ticked yet.</div>';
+}
+
+/* Timeline view */
+function visDates(){const n=scale==="week"?5:42;const out=[];for(let i=0;i<n;i++)out.push(addDays(anchor,i));return out;}
+function colStart(d,dates){for(let i=0;i<dates.length;i++)if(dates[i]>=d)return i;return dates.length;}
+function colEnd(d,dates){for(let i=dates.length-1;i>=0;i--)if(dates[i]<=d)return i;return -1;}
+
+function tlRows(dates){
+  const first=dates[0], last=dates[dates.length-1], td=today();
+  const flat=filter!=="all";
+  const inView=(t,sp)=>!!sp&&((sp.s<=last&&sp.e>=first)||(t.status!=="done"&&sp.e<first&&sp.e<td));
+  const rows=[]; const undated=[];
+  for(const k of WS_ORDER){
+    const g=[];
+    const tops=items.filter(t=>wsOf(t)===k&&(flat||!parentOf(t))&&visible(t)).sort(sortOpen);
+    for(const t of tops){
+      if(flat){
+        const sp=spanOf(t);
+        if(inView(t,sp)) g.push({t,depth:0,sp});
+        else if(!sp&&t.status!=="done") undated.push(t);
+        continue;
+      }
+      const kr=[];
+      for(const c of sortKids(kidsOf(t.id))){
+        const cs=spanOf(c);
+        if(inView(c,cs)) kr.push({t:c,depth:1,sp:cs});
+        else if(!cs&&c.status!=="done") undated.push(c);
+      }
+      const sp=effSpan(t);
+      if(inView(t,sp)||kr.length) g.push({t,depth:0,sp});
+      else if(!sp&&t.status!=="done") undated.push(t);
+      g.push(...kr);
+    }
+    if(g.length){ rows.push({group:k}); rows.push(...g); }
+  }
+  return {rows,undated};
+}
+
+function geom(sp,dates,dayW,W){
+  const first=dates[0], last=dates[dates.length-1];
+  if(sp.e<first) return {kind:"before",x1:0,x2:0};
+  if(sp.s>last) return {kind:"after",x1:W,x2:W};
+  if(sp.ms){
+    const i=dates.indexOf(sp.e);
+    const cx=i>=0?i*dayW+dayW/2:(colEnd(sp.e,dates)+1)*dayW;
+    return {kind:"ms",cx,x1:cx-7,x2:cx+7};
+  }
+  const a=sp.s<first?0:colStart(sp.s,dates)*dayW;
+  const b=sp.e>last?W:(colEnd(sp.e,dates)+1)*dayW;
+  if(b<=a) return {kind:"bar",x1:Math.max(0,a-4),x2:Math.min(W,a+4)};
+  return {kind:"bar",x1:a,x2:b,clipL:sp.s<first,clipR:sp.e>last};
+}
+
+function arrowPath(x1,y1,out,x2,y2,inn){
+  const ax=x1+out*8, bx=x2+inn*8;
+  const ym=y2>y1?y2-ROW/2:y2+ROW/2;
+  return 'M'+x1+' '+y1+' H'+ax+' V'+ym+' H'+bx+' V'+y2+' H'+x2;
+}
+
+function renderTimeline(){
+  const dates=visDates(); const n=dates.length; const td=today();
+  const box=$("tlscroll");
+  const wrapW=(box.clientWidth||760)-2;
+  const L=wrapW<560?128:(wrapW>=900?300:240);
+  const dayW=scale==="week"?Math.max(64,Math.floor((wrapW-L)/n)):24;
+  const W=n*dayW;
+  $("tlrange").textContent=scale==="week"?fmt(dates[0])+" to "+fmt(dates[n-1]):fmtShort(dates[0])+" to "+fmtShort(dates[n-1]);
+  document.querySelectorAll("[data-scale]").forEach(b=>b.setAttribute("aria-pressed",String(b.getAttribute("data-scale")===(scale==="week"?"week":"six"))));
+
+  const we=d=>{const w=parse(d).getDay();return w===0||w===6;};
+  let head='<div class="tlhead"><div class="lblcol" style="width:'+L+'px">Item</div><div class="hcells" style="width:'+W+'px">';
+  if(scale!=="week"){
+    head+='<div class="wkrow">';
+    for(let i=0;i<n;i+=7) head+='<div class="wk" style="width:'+(7*dayW)+'px">Week of '+esc(fmtShort(dates[i]))+'</div>';
+    head+='</div>';
+  }
+  head+='<div class="dayrow">'+dates.map(d=>'<div class="dh'+(we(d)?" we":"")+(d===td?" td":"")+'" style="width:'+dayW+'px">'+
+    esc(scale==="week"?parse(d).toLocaleDateString("en-GB",{weekday:"short",day:"numeric"}):String(parse(d).getDate()))+'</div>').join("")+'</div>';
+  head+='</div></div>';
+
+  const {rows,undated}=tlRows(dates);
+  const pos={};
+  let body="";
+  rows.forEach((r,i)=>{
+    if(r.group){
+      body+='<div class="tlrow grp"><div class="lblcol" style="width:'+L+'px" title="'+esc(WS[r.group])+'"><span class="swatch ws-'+r.group+'"></span><span class="lt">'+esc(WS[r.group])+'</span></div><div class="trk" style="width:'+W+'px"></div></div>';
+      return;
+    }
+    const t=r.t, open=t.status!=="done";
+    const wsc='var(--ws-'+wsOf(t)+')';
+    const over=open&&t.due&&t.due<td;
+    let mark="";
+    if(r.sp){
+      const g=geom(r.sp,dates,dayW,W);
+      pos[t.id]={y:i*ROW+ROW/2,x1:g.x1,x2:g.x2};
+      if(g.kind==="before") mark='<span class="stub l'+(open&&r.sp.e<td?"":" quiet")+'">'+(open&&r.sp.e<td?"Overdue · ":"Ended ")+esc(fmtShort(r.sp.e))+'</span>';
+      else if(g.kind==="after") mark='<span class="stub r">From '+esc(fmtShort(r.sp.s))+' ›</span>';
+      else if(g.kind==="ms") mark='<span class="ms'+(open?"":" done")+(over?" over":"")+'" style="left:'+(g.cx-7)+'px;--wsc:'+wsc+'" title="'+esc(refOf(t)+" due "+fmt(r.sp.e))+'"></span>';
+      else mark='<span class="bar'+(r.sp.sum?" sum":"")+(open?"":" done")+(over?" over":"")+(g.clipL?" clipL":"")+(g.clipR?" clipR":"")+'" style="left:'+g.x1+'px;width:'+(g.x2-g.x1)+'px;--wsc:'+wsc+'" title="'+esc(refOf(t)+" "+fmt(r.sp.s)+" to "+fmt(r.sp.e))+'"></span>';
+    }
+    const blk=open&&blockers(t).length>0;
+    body+='<div class="tlrow'+(open?"":" isdone")+'"><button type="button" class="lblcol" data-goto="'+esc(t.id)+'" style="width:'+L+'px;padding-left:'+(10+r.depth*16)+'px" title="'+esc(refOf(t)+" "+t.title)+'">'+
+      '<span class="ref'+(blk?" blk":"")+'">'+esc(refOf(t))+'</span><span class="lt">'+esc(t.title)+'</span></button>'+
+      '<div class="trk" style="width:'+W+'px">'+mark+'</div></div>';
+  });
+
+  let paths="";
+  rows.forEach(r=>{
+    if(r.group) return;
+    const succ=r.t, q=pos[succ.id]; if(!q) return;
+    depsOf(succ).forEach(d=>{
+      const p=pos[d.id], pred=M[d.id]; if(!p||!pred||p.y===q.y) return;
+      const fromFinish=d.type[0]==="F", toStart=d.type[1]==="S";
+      const x1=fromFinish?p.x2:p.x1, x2=toStart?q.x1:q.x2;
+      const bad=conflict(pred,succ,d.type);
+      paths+='<path class="dep'+(bad?" bad":"")+'" d="'+arrowPath(x1,p.y,fromFinish?1:-1,x2,q.y,toStart?-1:1)+'" marker-end="url(#'+(bad?"ahw":"ahn")+')"><title>'+esc(refOf(succ)+" depends on "+refOf(pred)+", "+DEP[d.type].toLowerCase())+'</title></path>';
+    });
+  });
+
+  const H=rows.length*ROW;
+  const cols=dates.map((d,i)=>'<div class="col'+(we(d)?" we":"")+(d===td?" td":"")+'" style="left:'+(i*dayW)+'px;width:'+dayW+'px"></div>').join("");
+  const svg='<svg class="arrows" style="left:'+L+'px" width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" aria-hidden="true"><defs>'+
+    '<marker id="ahn" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 z" class="ahn"/></marker>'+
+    '<marker id="ahw" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L8 4 L0 8 z" class="ahw"/></marker>'+
+    '</defs>'+paths+'</svg>';
+
+  if(!rows.length){
+    body='<div class="empty" style="padding:14px 12px">'+(loaded?"Nothing with dates falls in this range.":"The items will appear here once the list has loaded.")+'</div>';
+    $("tl").innerHTML='<div class="tl" style="width:'+(L+W)+'px">'+head+body+'</div>';
+  }else{
+    $("tl").innerHTML='<div class="tl" style="width:'+(L+W)+'px">'+head+'<div class="tlbody" style="height:'+H+'px"><div class="cols" style="left:'+L+'px;width:'+W+'px">'+cols+'</div>'+svg+body+'</div></div>';
+  }
+
+  $("undated").innerHTML=undated.length?'<details class="undated" id="undatedbox"'+(undatedOpen?" open":"")+'><summary><span>No dates yet</span><span class="mono">'+undated.length+'</span></summary>'+
+    '<p class="hint">Add a start or due date with Edit to place an item on the timeline.</p><div class="ulist">'+
+    undated.sort(byRef).map(t=>'<button class="linkbtn" type="button" data-goto="'+esc(t.id)+'">'+esc(refOf(t)+" "+t.title)+'</button>').join("")+'</div></details>':"";
+}
+
+/* Summary for email */
+function summaryText(){
+  const td=today(), wk=addDays(td,7), ago=addDays(td,-7);
+  const dl=d=>parse(d).toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short"}).replace(",","");
+  const who=t=>{const o=ownersOf(t);return o.length?" ("+o.join(", ")+")":" (no owner yet)";};
+  const line=t=>"- "+refOf(t)+" "+t.title+who(t);
+  const open=items.filter(t=>t.status!=="done");
+  const done=items.filter(t=>t.status==="done"&&t.doneAt&&iso(new Date(t.doneAt))>=ago).sort((a,b)=>String(a.doneAt).localeCompare(String(b.doneAt)));
+  const soon=open.filter(t=>t.due&&t.due>=td&&t.due<=wk).sort(sortOpen);
+  const overdue=open.filter(t=>t.due&&t.due<td).sort(sortOpen);
+  const blocked=open.filter(t=>blockers(t).length).sort(byRef);
+  const noOwner=open.filter(t=>!ownersOf(t).length).sort(byRef);
+  const n=(k,one,many)=>k+" "+(k===1?one:many);
+  let s=CONFIG.title+", "+parse(td).toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"})+"\n\n";
+  s+=n(open.length,"item is open.","items are open.");
+  if(overdue.length) s+=" "+n(overdue.length,"is overdue.","are overdue.");
+  if(blocked.length) s+=" "+n(blocked.length,"is blocked.","are blocked.");
+  s+="\n";
+  const sec=(title,lines)=>{ if(lines.length) s+="\n"+title+"\n"+lines.join("\n")+"\n"; };
+  sec("Done in the last seven days",done.map(line));
+  sec("Overdue",overdue.map(t=>"- "+dl(t.due)+": "+refOf(t)+" "+t.title+who(t)));
+  sec("Due in the next seven days",soon.map(t=>"- "+dl(t.due)+": "+refOf(t)+" "+t.title+who(t)));
+  sec("Blocked",blocked.map(t=>line(t)+", waiting for "+blockers(t).map(d=>refById(d.id)).join(" and ")));
+  sec("No owner yet",noOwner.map(t=>"- "+refOf(t)+" "+t.title));
+  if(LIST_URL) s+="\nThe full list is at "+LIST_URL+"\n";
+  return s;
+}
+
+/* Shared rendering */
+function renderFilters(){
+  const names=new Set(); let none=false;
+  for(const t of items){ if(t.status==="done") continue; const o=ownersOf(t); if(!o.length) none=true; o.forEach(n=>names.add(n)); }
+  const list=[...names].sort((a,b)=>{const ia=TEAM.indexOf(a), ib=TEAM.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib)||a.localeCompare(b);});
+  if(filter!=="all" && filter!=="__none" && !names.has(filter)) filter="all";
+  if(filter==="__none" && !none) filter="all";
+  const opts=[["all","Everyone"]].concat(list.map(n=>[n,n]));
+  if(none) opts.push(["__none","No owner yet"]);
+  $("filters").innerHTML='<span class="lbl">Show items for</span>'+opts.map(([k,l])=>'<button type="button" data-filter="'+esc(k)+'" aria-pressed="'+(filter===k)+'">'+esc(l)+'</button>').join("");
+  const team=new Set(TEAM); for(const t of items) ownersOf(t).forEach(n=>team.add(n));
+  $("teamlist").innerHTML=[...team].map(n=>'<option value="'+esc(n)+'"></option>').join("");
+}
+
+function renderAddForm(){
+  $("addform").hidden=!writable();
+  if(!$("newws").options.length) $("newws").innerHTML=WS_ORDER.map(k=>'<option value="'+k+'">'+esc(WS[k])+'</option>').join("");
+  const sel=$("newparent");
+  if(document.activeElement!==sel){
+    const cur=sel.value;
+    sel.innerHTML='<option value="">Not a subtask</option>'+items.filter(x=>!parentOf(x)&&x.status!=="done").sort(byRef).map(x=>itemOption(x,x.id===cur)).join("");
+  }
+}
+
+function render(){
+  M={}; items.forEach(t=>{M[t.id]=t;});
+  const td=today();
+  $("today").textContent=parse(td).toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  renderFilters();
+  renderAddForm();
+  $("listview").hidden=view!=="list";
+  $("tlview").hidden=view!=="timeline";
+  $("v-list").setAttribute("aria-pressed",String(view==="list"));
+  $("v-tl").setAttribute("aria-pressed",String(view==="timeline"));
+
+  const vis=items.filter(visible);
+  const open=vis.filter(t=>t.status!=="done");
+  const overdue=open.filter(t=>t.due && t.due<td);
+  const soon=open.filter(t=>t.due && t.due>=td && t.due<=addDays(td,7));
+  const blocked=open.filter(t=>blockers(t).length);
+  $("counts").innerHTML=
+    '<span class="count"><b>'+open.length+'</b> open</span>'+
+    '<span class="count'+(overdue.length?" hot":"")+'"><b>'+overdue.length+'</b> overdue</span>'+
+    '<span class="count"><b>'+soon.length+'</b> due in the next seven days</span>'+
+    (blocked.length?'<span class="count hot"><b>'+blocked.length+'</b> blocked</span>':'')+
+    '<span class="count"><b>'+(vis.length-open.length)+'</b> done</span>';
+
+  $("sumbox").hidden=!sumOpen;
+  $("sumbtn").setAttribute("aria-expanded",String(sumOpen));
+  if(sumOpen) $("sumtext").value=loaded?summaryText():"The summary will appear once the list has loaded.";
+
+  if(view==="list") renderList(); else renderTimeline();
+  resolveNames();
+  if(editing && view==="list"){ const el=$("ed-title"); if(el && document.activeElement===document.body) el.focus(); }
+}
+
+async function resolveNames(){
+  const spans=[...document.querySelectorAll("[data-uid]")];
+  if(!spans.length || !user) return;
+  const ids=[...new Set(spans.map(s=>s.getAttribute("data-uid")))];
+  let ps={};
+  try{ ps=await user.profiles(ids); }catch(e){ return; }
+  for(const s of document.querySelectorAll("[data-uid]")){
+    const p=ps[s.getAttribute("data-uid")];
+    s.textContent=(p && p.name)?" by "+p.name:"";
+  }
+}
+
+function readOnly(){
+  canWrite=false; editing=null; draft=null; confirmDel=null;
+  setStatus("You can read this list. To tick or add items, ask the list's owner for edit access.",true);
+  render();
+}
+
+async function write(fn,okMsg){
+  try{ await fn(); if(okMsg) setStatus(okMsg); return true; }
+  catch(e){
+    const code=e && e.code;
+    if(code==="invalid_argument"){ readOnly(); return false; }
+    if(code==="quota_exceeded"){ setStatus("The list is full. Delete some done items, then try again.",true); return false; }
+    setStatus("That didn't save. Try again in a moment.",true); return false;
+  }
+}
+
+/* Events */
+document.addEventListener("change",async ev=>{
+  const id=ev.target && ev.target.getAttribute && ev.target.getAttribute("data-toggle");
+  if(!id) return;
+  if(!writable()){ ev.target.checked=!ev.target.checked; return; }
+  const done=ev.target.checked;
+  const ok=await write(()=>db.doc("tasks/"+id).update(done?{status:"done",doneAt:new Date().toISOString(),doneBy:myId||null}:{status:"open",doneAt:null,doneBy:null}),done?"Ticked.":"Reopened.");
+  if(!ok) ev.target.checked=!done;
+});
+
+function onDraft(ev){
+  const k=ev.target && ev.target.getAttribute && ev.target.getAttribute("data-draft");
+  if(k && draft) draft[k]=ev.target.value;
+}
+document.addEventListener("input",onDraft);
+document.addEventListener("change",onDraft);
+document.addEventListener("toggle",ev=>{ if(ev.target && ev.target.id==="undatedbox") undatedOpen=ev.target.open; },true);
+
+document.addEventListener("click",async ev=>{
+  const b=ev.target.closest && ev.target.closest("button");
+  if(!b) return;
+  if(b.hasAttribute("data-sumcopy")){
+    const ta=$("sumtext");
+    try{ await navigator.clipboard.writeText(ta.value); setStatus("Summary copied. Paste it into your email."); }
+    catch(e){ ta.focus(); ta.select(); setStatus("The summary is selected. Press Ctrl+C, or Cmd+C on a Mac, to copy it."); }
+    return;
+  }
+  if(b.hasAttribute("data-sum")){ sumOpen=!sumOpen; render(); if(sumOpen) $("sumbox").scrollIntoView({block:"nearest"}); return; }
+  if(b.hasAttribute("data-view")){ view=b.getAttribute("data-view"); render(); return; }
+  if(b.hasAttribute("data-scale")){ scale=b.getAttribute("data-scale")==="week"?"week":"six"; if(scale==="week") anchor=mondayOf(anchor); render(); return; }
+  if(b.hasAttribute("data-nav")){
+    const d=Number(b.getAttribute("data-nav"));
+    anchor=d===0?mondayOf(today()):addDays(anchor,d*(scale==="week"?7:21));
+    render(); return;
+  }
+  if(b.hasAttribute("data-filter")){
+    filter=b.getAttribute("data-filter");
+    try{ localStorage.setItem(CONFIG.storageKey,filter); }catch(e){}
+    render(); return;
+  }
+  if(b.hasAttribute("data-sub")){
+    const id=b.getAttribute("data-sub");
+    if(expanded.has(id)) expanded.delete(id); else expanded.add(id);
+    render(); return;
+  }
+  if(b.hasAttribute("data-goto")){
+    const t=M[b.getAttribute("data-goto")]; if(!t) return;
+    view="list";
+    const p=parentOf(t); if(p) expanded.add(p.id);
+    if(!visible(t)) filter="all";
+    if(writable()){ editing=t.id; confirmDel=null; draft=draftOf(t); }
+    render();
+    if(t.status==="done") $("donebox").open=true;
+    const el=$("row-"+t.id);
+    if(el){ el.scrollIntoView({block:"center"}); el.classList.add("flash"); setTimeout(()=>el.classList.remove("flash"),1600); }
+    return;
+  }
+  if(b.hasAttribute("data-edit")){
+    const t=M[b.getAttribute("data-edit")]; if(!t) return;
+    editing=t.id; confirmDel=null; draft=draftOf(t);
+    render(); const el=$("ed-title"); if(el) el.focus(); return;
+  }
+  if(b.hasAttribute("data-cancel")){ editing=null; draft=null; confirmDel=null; render(); return; }
+  if(b.hasAttribute("data-depadd")){
+    const sid=b.getAttribute("data-depadd");
+    const pid=$("ed-dep-id")?$("ed-dep-id").value:"", type=$("ed-dep-type")?$("ed-dep-type").value:"";
+    if(!draft || !pid || !DEP[type] || pid===sid) return;
+    if((draft.deps||[]).some(d=>d.id===pid)){ setStatus("That dependency is already there.",true); return; }
+    if(dependsOn(pid,sid)){ setStatus("That would make "+refById(pid)+" and "+refById(sid)+" depend on each other.",true); return; }
+    draft.deps=(draft.deps||[]).concat([{id:pid,type}]);
+    setStatus("Dependency added. Save to keep it.");
+    render(); return;
+  }
+  if(b.hasAttribute("data-depdel")){
+    if(!draft) return;
+    const i=Number(b.getAttribute("data-depdel"));
+    draft.deps=(draft.deps||[]).filter((d,j)=>j!==i);
+    render(); return;
+  }
+  if(b.hasAttribute("data-save")){
+    const id=b.getAttribute("data-save");
+    const title=(draft.title||"").trim();
+    if(!title){ setStatus("An item needs a name before it can be saved.",true); const el=$("ed-title"); if(el) el.focus(); return; }
+    const start=draft.start||"", due=draft.due||"";
+    if(start && due && start>due){ setStatus("The start date is after the due date.",true); return; }
+    let ws=draft.workstream||DEFAULT_WS, parent=draft.parent||"";
+    if(parent){
+      const p=M[parent];
+      if(!p || p.id===id || p.parent || kidsOf(id).length) parent="";
+      else { ws=wsOf(p); expanded.add(p.id); }
+    }
+    b.disabled=true;
+    const ok=await write(()=>db.doc("tasks/"+id).update({title,note:(draft.note||"").trim(),owners:parseOwners(draft.owner),
+      due,start,workstream:ws,parent,deps:(draft.deps||[]).filter(d=>d.id!==id&&DEP[d.type]),updatedAt:new Date().toISOString()}),"Saved.");
+    if(ok){ editing=null; draft=null; confirmDel=null; render(); } else b.disabled=false;
+    return;
+  }
+  if(b.hasAttribute("data-del")){ confirmDel=b.getAttribute("data-del"); render(); return; }
+  if(b.hasAttribute("data-delno")){ confirmDel=null; render(); return; }
+  if(b.hasAttribute("data-delyes")){
+    const id=b.getAttribute("data-delyes");
+    let ok=true;
+    for(const k of kidsOf(id)){ ok=await write(()=>db.doc("tasks/"+k.id).update({parent:""})); if(!ok) break; }
+    if(ok) for(const x of items.filter(x=>x.id!==id&&depsOf(x).some(d=>d.id===id))){
+      ok=await write(()=>db.doc("tasks/"+x.id).update({deps:depsOf(x).filter(d=>d.id!==id)})); if(!ok) break;
+    }
+    if(ok) ok=await write(()=>db.doc("tasks/"+id).delete(),"Deleted.");
+    if(ok){ editing=null; draft=null; confirmDel=null; render(); }
+    return;
+  }
+});
+
+$("addform").addEventListener("submit",async ev=>{
+  ev.preventDefault();
+  const title=$("newtitle").value.trim();
+  if(!title){ $("newtitle").focus(); return; }
+  if(!writable()) return;
+  $("addbtn").disabled=true;
+  const ref=items.reduce((m,t)=>Math.max(m,Number(t.ref)||0),0)+1;
+  const pid=$("newparent").value; const p=pid&&M[pid]&&!M[pid].parent?M[pid]:null;
+  const ok=await write(()=>db.collection("tasks").add({
+    title,note:"",owners:parseOwners($("newowner").value),workstream:p?wsOf(p):$("newws").value,
+    due:$("newdue").value||"",start:"",parent:p?p.id:"",deps:[],status:"open",source:"",ref,order:items.reduce((m,t)=>Math.max(m,Number(t.order)||0),0)+1,
+    createdAt:new Date().toISOString(),createdBy:myId||null,doneAt:null,doneBy:null
+  }),"Added as "+CONFIG.prefix+"-"+pad(ref)+".");
+  if(ok){ $("newtitle").value=""; $("newowner").value=""; $("newdue").value=""; $("newparent").value=""; if(p) expanded.add(p.id); }
+  $("addbtn").disabled=false;
+});
+
+/* Demo store: used only when the page is opened outside Claude (for example
+   from GitHub Pages or a local file). It keeps items in this browser's
+   localStorage and mimics the small part of the db capability the page uses. */
+/* The example items shown in demo mode, dated around today. */
+function demoSeed(){
+  const td=today(), d=n=>n==null?"":addDays(td,n), now=new Date().toISOString();
+  const rows=[
+    ["rl01",1,"Book the boiler service","Ask for a morning slot.",["Alex"],"home",null,18,"",[]],
+    ["rl02",2,"Draft the committee report","Figures from the treasurer first.",["Alex"],"work",5,15,"",[{id:"rl03",type:"FS"}]],
+    ["rl03",3,"Get the figures from the treasurer","",[],"work",null,4,"",[]],
+    ["rl04",4,"Renew the car insurance","",["Alex"],"home",null,-1,"",[]],
+    ["rl05",5,"Learn the bass part for the winter concert","Rehearsals on Tuesdays.",["Alex"],"learning",-2,51,"",[]],
+    ["rl06",6,"Walk the coast path from end to end","",[],"someday",null,null,"",[]],
+    ["rl07",7,"Check the figures add up","",["Sam"],"work",null,7,"rl02",[]]
+  ];
+  const out={};
+  rows.forEach(r=>{ out[r[0]]={ref:r[1],title:r[2],note:r[3],owners:r[4],workstream:r[5],start:d(r[6]),due:d(r[7]),
+    parent:r[8],deps:r[9],status:"open",doneAt:null,doneBy:null,source:"",order:r[1],createdAt:now,createdBy:null}; });
+  out.rl08={ref:8,title:"Clear the gutters",note:"",owners:["Alex"],workstream:"home",start:"",due:d(-5),parent:"",deps:[],
+    status:"done",doneAt:new Date(Date.now()-4*864e5).toISOString(),doneBy:null,source:"",order:8,createdAt:now,createdBy:null};
+  return out;
+}
+
+function demoStore(){
+  const KEY=CONFIG.storageKey+"-demo-items";
+  let docs={}; const subs=[];
+  let stored=null;
+  try{ stored=localStorage.getItem(KEY); }catch(e){ stored=null; }
+  if(stored){ try{ docs=JSON.parse(stored)||{}; }catch(e){ docs={}; } }
+  else docs=demoSeed();
+  const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(docs)); }catch(e){} };
+  const emit=()=>{ const snap={docs:Object.keys(docs).map(id=>({id,data:()=>Object.assign({},docs[id])}))}; subs.forEach(f=>f(snap)); };
+  const later=f=>Promise.resolve().then(f);
+  return {
+    demo:true,
+    collection(){ return {
+      onSnapshot(fn){ subs.push(fn); later(emit); return ()=>{}; },
+      add(obj){ return later(()=>{ const id="d"+Date.now().toString(36)+Math.random().toString(36).slice(2,6); docs[id]=Object.assign({},obj); save(); emit(); return {id}; }); }
+    }; },
+    doc(path){ const id=String(path).split("/").pop(); return {
+      update(obj){ return later(()=>{ if(!docs[id]) throw {code:"not_found"}; Object.assign(docs[id],obj); save(); emit(); }); },
+      delete(){ return later(()=>{ delete docs[id]; save(); emit(); }); }
+    }; }
+  };
+}
+
+let rz=null;
+window.addEventListener("resize",()=>{ if(view!=="timeline") return; clearTimeout(rz); rz=setTimeout(render,150); });
+
+applyTheme();
+render();
+(async()=>{
+  try{ db=(window.claude && window.claude.use)? await window.claude.use("db") : null; }catch(e){ db=null; }
+  try{ user=(window.claude && window.claude.use)? await window.claude.use("user") : null; }catch(e){ user=null; }
+  if(!db){
+    db=demoStore(); canWrite=true;
+    setStatus("Demo mode: this page is open outside Claude, so items are kept in this browser only.");
+  }
+  if(user){
+    try{ myId=await user.id(); }catch(e){ myId=null; }
+    try{ const c=await user.can("data.write"); if(c===false) canWrite=false; else if(c===true) canWrite=true; }catch(e){}
+  }
+  if(canWrite===false) setStatus("You can read this list. To tick or add items, ask the list's owner for edit access.",true);
+  db.collection("tasks").onSnapshot(snap=>{
+    items=snap.docs.map(d=>Object.assign({id:d.id},d.data()));
+    M={}; items.forEach(t=>{M[t.id]=t;});
+    const first=!loaded; loaded=true;
+    if(editing && !M[editing]){ editing=null; draft=null; confirmDel=null; }
+    if(first && canWrite!==false && !db.demo) setStatus(items.length?"":"The list is empty.");
+    const typing=editing && document.activeElement && document.activeElement.closest && document.activeElement.closest(".edit");
+    if(!typing) render();
+  },()=>{ setStatus("The list stopped updating. Reload the page.",true); });
+})();
+</script>
+
+</body></html>
