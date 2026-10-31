@@ -1,0 +1,13 @@
+{
+  "name": "chronicle-threads",
+  "displayName": "Chronicle",
+  "version": "1.1.0",
+  "description": "Thread governance for Claude Projects: run several areas of work and life side by side, each with its own chat, log and running list, without losing or inventing facts.",
+  "author": {
+    "name": "Matthew Wolff Simon"
+  },
+  "homepage": "https://github.com/WolffSimon/Chronicle",
+  "repository": "https://github.com/WolffSimon/Chronicle",
+  "license": "MIT",
+  "keywords": ["projects", "organisation", "memory", "task-list", "governance", "notes"]
+}

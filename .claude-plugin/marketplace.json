@@ -1,0 +1,8 @@
+{
+  "name": "wolffsimon-chronicle",
+  "description": "Chronicle by Matthew Wolff Simon: thread governance for Claude Projects.",
+  "owner": { "name": "Matthew Wolff Simon" },
+  "plugins": [
+    { "name": "chronicle-threads", "source": "./" }
+  ]
+}

@@ -1,6 +1,6 @@
 # Starter prompt
 
-Use this once, in the first chat of a new Claude Project. Before you paste it, add the files in this repository's `templates/` folder and `running-list/index.html` to the Project's files, or attach them to the chat. Some surfaces drop folder names on upload. Claude matches the files by name.
+Use this once, in the first chat of a new Claude Project. Before you paste it, add the files in this repository's `skills/chronicle/templates/` folder and `skills/chronicle/running-list/index.html` to the Project's files, or attach them to the chat. Some surfaces drop folder names on upload. Claude matches the files by name.
 
 ```text
 I want to run this Project with the Chronicle pattern for thread governance.

@@ -37,29 +37,33 @@ The reasons for each rule are in [docs/principles.md](docs/principles.md). The a
 ```
 README.md                     this file
 LICENSE                       MIT
+.claude-plugin/               the plugin manifest, the marketplace file and the icon
 docs/
   principles.md               every rule, with the reason for it
   how-it-works.md             the parts, a diagram, costs and lessons
-templates/
-  project-instructions.md     the constitution
-  thread-context.md           a thread's charter and working notes
-  thread-log.md               the dated, append-only log
-  record-extract.md           the sourced digest a thread starts from
-  operating-guide.md          the handover manual
-  house-style.md              a starting house style for prose
-  canon-record.md             the record of facts, with consistency rules
-  canon-people.md             the people, with handling notes
-prompts/
-  start.md                    the starter prompt (below)
-  open-thread.md              the first message in each thread
-  new-thread.md               adding a thread later
-  master-merge.md             folding the logs into the canon
-  handover.md                 retiring or moving a thread
-  daily-summary.md            an optional morning summary
-running-list/
-  index.html                  the task-list page
-  README.md                   configuring, publishing, the data schema
-  seed-example.json           eight example items
+  images/                     screenshots of the running list
+skills/chronicle/
+  SKILL.md                    the skill: which procedure to follow when
+  templates/
+    project-instructions.md   the constitution
+    thread-context.md         a thread's charter and working notes
+    thread-log.md             the dated, append-only log
+    record-extract.md         the sourced digest a thread starts from
+    operating-guide.md        the handover manual
+    house-style.md            a starting house style for prose
+    canon-record.md           the record of facts, with consistency rules
+    canon-people.md           the people, with handling notes
+  prompts/
+    start.md                  the starter prompt (below)
+    open-thread.md            the first message in each thread
+    new-thread.md             adding a thread later
+    master-merge.md           folding the logs into the canon
+    handover.md               retiring or moving a thread
+    daily-summary.md          an optional morning summary
+  running-list/
+    index.html                the task-list page
+    README.md                 configuring, publishing, the data schema
+    seed-example.json         eight example items
 examples/
   worked-example.md           a fictional project, three weeks in
 hooks/
@@ -68,12 +72,23 @@ hooks/
   post-compact-brief.md       the brief the hook prints
 ```
 
+## Installing it
+
+**As a plugin.** Chronicle is packaged as a Claude plugin named `chronicle-threads`. Once its listing in Anthropic's directory is live, add it from the directory on claude.ai. In Claude Code you can install it from this repository now:
+
+```
+claude plugin marketplace add WolffSimon/Chronicle
+claude plugin install chronicle-threads@wolffsimon-chronicle
+```
+
+The plugin carries one skill, `chronicle`, which holds the templates, the prompts and the list page, and tells Claude which procedure fits the moment. You can also work from the files directly, as below.
+
 ## Getting started
 
 You need a Claude Project. The running lists need a Claude surface that can publish artifacts with a database. Everything else works with project files alone.
 
 1. Create a new Project.
-2. Add the files in `templates/` and `running-list/index.html` to the Project's files. Some surfaces drop the folder names on upload. Claude matches the files by name, so that does not matter.
+2. Add the files in `skills/chronicle/templates/` and `skills/chronicle/running-list/index.html` to the Project's files, unless you installed the plugin. Some surfaces drop the folder names on upload. Claude matches the files by name, so that does not matter.
 3. Open a new chat in the Project and paste the starter prompt below.
 4. Answer Claude's questions. It drafts your project instructions, sets up `master/` and a folder per thread, publishes a list per thread if it can, and gives you an opening message for each thread.
 5. Paste the final project instructions into the Project's instructions.
@@ -128,17 +143,17 @@ them there. If you cannot, give me each file to download and add, and tell me
 the path it belongs at.
 ```
 
-The other prompts are in [prompts/](prompts/). The two you will use most are the opening line for a thread and the master merge.
+The other prompts are in [skills/chronicle/prompts/](skills/chronicle/prompts/). The two you will use most are the opening line for a thread and the master merge.
 
 ## The running list
 
-![The timeline view, with a dependency and an overdue item](running-list/screenshot-timeline.png)
+![The timeline view, with a dependency and an overdue item](docs/images/screenshot-timeline.png)
 
-The list view at phone width is in [running-list/screenshot.png](running-list/screenshot.png).
+The list view at phone width is in [docs/images/screenshot.png](docs/images/screenshot.png).
 
 The list page is one HTML file with no build step. It groups items by workstream, folds subtasks under their parents, draws dated items on a timeline with dependency arrows, and writes a plain-text summary for email. In Claude it uses the artifact database, so the page and every chat see the same items. Opened anywhere else it runs in demo mode and keeps items in the browser.
 
-Configuration, publishing and the data schema are in [running-list/README.md](running-list/README.md).
+Configuration, publishing and the data schema are in [skills/chronicle/running-list/README.md](skills/chronicle/running-list/README.md).
 
 ## Recovery after compaction
 
@@ -169,6 +184,10 @@ The pattern makes a thread re-read its documents after compaction, and only then
 - The master merge is manual by design, because it needs your answers.
 - On some Claude surfaces chats cannot write project files. The prompts handle that case, and the manual route is slower.
 - The pattern keeps chats consistent with the record. Keeping the record true is your job.
+
+## What it runs and what it sends
+
+Chronicle is Markdown, one HTML page and one optional shell script. The skill tells Claude to interview you, write documents into your Project, and publish the list page as an artifact. The list page stores its items in that artifact's database on claude.ai, and it loads its typefaces from Google Fonts in the viewer's browser. The compaction hook in `hooks/` is not switched on by the plugin; you install it yourself if you want it, and it prints a file you name. Nothing in Chronicle reads your credentials or tokens, and nothing else leaves your machine.
 
 ## Licence
 
